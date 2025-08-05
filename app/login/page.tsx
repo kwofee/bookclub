@@ -3,9 +3,11 @@
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
+import { redirect } from "next/navigation";
 
 function LoginPage(){
   const supabase = createSupabaseBrowserClient();
+  
   const handleLogin = async () => {
     const callbackUrl = `${window.location.origin}/auth/callback?next=/`;
     
@@ -19,6 +21,7 @@ function LoginPage(){
         }
       },
     });
+
   };
   
   return (
