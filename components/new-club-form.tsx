@@ -59,7 +59,8 @@ export function InputForm({ user }: InputFormProps) {
         .insert({
           creator_id: user.id, 
           name: data.club_name, 
-          description: data.club_description
+          description: data.club_description,
+          members: [user.id],
         })
         .select()
 
