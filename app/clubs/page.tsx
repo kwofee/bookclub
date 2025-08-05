@@ -6,6 +6,13 @@ import { CardContent, Card, CardHeader, CardDescription, CardTitle } from "@/com
 import Link from "next/link";
 import { ClubDialog } from "@/components/club-dialog";
 
+type Club = {
+  club_id: any;
+  name: any;
+  description: any | null;
+  profiles: { name: string | null } | null;
+};
+
 export default async function ClubsPage() {
   const supabase = await createClient();
   const {
@@ -53,7 +60,8 @@ export default async function ClubsPage() {
 //     },
 //     ];
 
-  
+console.log("Club Data From Server:", JSON.stringify(clubs, null, 2));
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Your Clubs</h1>
@@ -80,7 +88,7 @@ export default async function ClubsPage() {
         ))} */}
 
         {clubs?.map((club) => (
-          <ClubDialog key={club.club_id} club={club} user={user}/>
+          <ClubDialog key={club.club_id} club={club as unknown as Club} user={user}/>
         ))}
 
         
