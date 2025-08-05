@@ -6,17 +6,21 @@ import { Loader2 } from "lucide-react";
 import { resolve } from "path";
 import { toast, Toaster } from "sonner";
 import { useRouter } from "next/navigation";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 function LogoutButton(){
+
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const supabase = createSupabaseBrowserClient();
+
     const handleLogOut = async () => {
         setLoading(true);
         console.log("log out");
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        
+        const { error } = await supabase.auth.signOut({ scope: 'local' })
 
-        const errorMessage = 1;
-        if(!errorMessage){
+        if(!error){
             toast.success("Logged out");
             router.push('/');
         }else{

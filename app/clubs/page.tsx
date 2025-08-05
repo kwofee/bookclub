@@ -23,10 +23,14 @@ export default async function ClubsPage() {
     redirect("/login");
   }
 
-  const {data: clubs, error} = await supabase.from("clubs").select("club_id, created_at, creator_id, members, current_book,name, description, profiles!creator_id(name)");
+  // const {data: clubs, error} = await supabase.from("clubs").select("club_id, created_at, creator_id, members, current_book,name, description, profiles!creator_id(name)");
   // console.log("Clubs ", clubs);
   // console.log("Error ", error);
-
+  const { data: clubs, error } = await supabase
+    .from("clubs")
+    .select("club_id, created_at, creator_id, members, current_book, name, description, profiles!creator_id(name)")
+    .contains("members", [user.id]);
+    
 //   const clubs = [
 //     {
 //         id: "1",
