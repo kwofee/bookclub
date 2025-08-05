@@ -13,7 +13,7 @@ export default async function Home() {
     }
 
     const { data: profileData, error } = await supabase.from("profiles").select("*").eq("user_id", user.id)
-      console.log("Profile data", profileData)
+      // console.log("Profile data", profileData)
       if(!profileData || profileData?.length == 0 ){
         redirect("/first-time-user")
       }

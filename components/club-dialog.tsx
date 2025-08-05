@@ -31,13 +31,13 @@ import {
 } from "@/components/ui/table";
 import { User } from "@supabase/supabase-js";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
-
+import { toast } from "sonner";
 
 type Profile = { name: string | null };
 
 type Request = {
   request_id: any;
-  profiles: { name: string | null } | null; // profiles is an array of objects
+  profiles: { name: string | null } | null; 
 };
 
 type Club = {
@@ -47,10 +47,23 @@ type Club = {
   profiles: { name: string | null } | null;
 };
 
+type FullRequest = {
+  request_id: any,
+  created_at: any,
+  club_id_request: any,
+  processed: any,
+  request_user_id: any,
+}
+
 interface ClubDialogProps {
   club: Club;
   user: User | null;
 }
+
+interface RequestProps{
+  request: Request
+};
+
 
 export function ClubDialog({ club, user }: ClubDialogProps) {
   const [requests, setRequests] = useState<Request[]>([]);
@@ -62,8 +75,8 @@ export function ClubDialog({ club, user }: ClubDialogProps) {
       const fetchRequests = async () => {
         setIsLoading(true);
         const supabase = createSupabaseBrowserClient();
-        console.log("Supabase")
-        // 2. This is the CORRECT query to fetch requests for the currently opened club
+        // console.log("Supabase")
+        
         const { data: fetchedRequests, error } = await supabase
           .from("requests")
           .select("request_id, profiles!request_user_id(name)")
@@ -73,16 +86,40 @@ export function ClubDialog({ club, user }: ClubDialogProps) {
         if (error) {
           console.error("Error fetching requests:", error);
         } else if (fetchedRequests) {
-          console.log("Fetched Requests:", fetchedRequests);
+          // console.log("Fetched Requests:", fetchedRequests);
           setRequests(fetchedRequests as any[]);
         }
         setIsLoading(false);
       };
-
+      
       fetchRequests();
     }
   }, [isOpen, user, club.club_id]);
 
+  const requestApproval = async (reqToApprove: Request) => {
+    const supabase = createSupabaseBrowserClient();
+    const {data: req, error} = await supabase.from("requests").select("*").eq("request_id", reqToApprove.request_id).single();
+    if(error){
+      toast.error(error.message);
+    }else{
+      console.log(req);
+      console.log((req as unknown as FullRequest).request_id);
+      console.log((req as unknown as FullRequest).club_id_request);
+      console.log((req as unknown as FullRequest).request_user_id);
+      
+      const {data: modClub, error} = await supabase.rpc("append_member_to_club",{
+        p_request_id: (req as unknown as FullRequest).request_id,
+        club_id_to_update: (req as unknown as FullRequest).club_id_request,
+        new_member_id: (req as unknown as FullRequest).request_user_id,
+      })
+
+      if(error){
+        toast.error(`Failed to join club ${error.message}`);
+      }else{
+        toast(modClub);
+      }
+    }
+  };
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -123,11 +160,10 @@ export function ClubDialog({ club, user }: ClubDialogProps) {
                 requests.map((req) => (
                   <TableRow key={req.request_id}>
                     <TableCell>
-                      {/* 3. Correctly display the user's name from the nested object */}
                       {req.profiles?.name || "Unknown User"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm">Approve</Button>
+                      <Button onClick={() => requestApproval(req)} size="sm">Approve</Button>
                     </TableCell>
                   </TableRow>
                 ))
