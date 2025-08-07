@@ -45,6 +45,7 @@ type Club = {
   name: any;
   description: any | null;
   profiles: { name: string | null } | null;
+  current_book: any | null;
 };
 
 type FullRequest = {
@@ -102,11 +103,6 @@ export function ClubDialog({ club, user }: ClubDialogProps) {
     if(error){
       toast.error(error.message);
     }else{
-      console.log(req);
-      console.log((req as unknown as FullRequest).request_id);
-      console.log((req as unknown as FullRequest).club_id_request);
-      console.log((req as unknown as FullRequest).request_user_id);
-      
       const {data: modClub, error} = await supabase.rpc("append_member_to_club",{
         p_request_id: (req as unknown as FullRequest).request_id,
         club_id_to_update: (req as unknown as FullRequest).club_id_request,
@@ -140,8 +136,21 @@ export function ClubDialog({ club, user }: ClubDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Pending Requests for "{club.name}"</DialogTitle>
+          <DialogTitle>{club.name}</DialogTitle>
         </DialogHeader>
+        <div className="my-4">
+            <h3 className="text-lg font-medium mb-2 text-foreground">Currently Reading</h3>
+            <Card className="bg-muted/50 p-4 flex items-center gap-4">
+                
+                <div className="space-y-1">
+                    <CardTitle className="text-xl">{club.current_book || "No book selected"}</CardTitle>
+                    <CardDescription>
+                        {club.description}
+                    </CardDescription>
+                </div>
+            </Card>
+        </div>
+        
         <div className="grid gap-4">
           <Table>
             <TableCaption>Users who want to join this club.</TableCaption>

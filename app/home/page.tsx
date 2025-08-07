@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/app/auth/server";
-
-
+// import { toast } from "sonner";
+import { GoogleBooksApiResponse, Book } from "@/types/google-books-api";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
+import { Card, CardContent } from "@/components/ui/card";
+import Autoplay from "embla-carousel-autoplay"
+import { BookCarousel } from "@/components/BookCarousel";
 
 export default async function Home() {
     const supabase = await createClient();
@@ -14,11 +18,33 @@ export default async function Home() {
 
     const { data: profileData, error } = await supabase.from("profiles").select("*").eq("user_id", user.id)
       // console.log("Profile data", profileData)
-      if(!profileData || profileData?.length == 0 ){
-        redirect("/first-time-user")
-      }
+    if(!profileData || profileData?.length == 0 ){
+      redirect("/first-time-user")
+    }
+    
+    let books: Book[] = [];
+    let genres = ["fiction", "fantasy", "non-fiction"];
 
+    try{
+      const apiKey = process.env.NEXT_PUBLIC_CLOUD_API;
+      const apiURL = `https://www.googleapis.com/books/v1/volumes?q=subject:fiction&maxResults=12&key=${apiKey}`;
+      const response = await fetch(apiURL, { next: { revalidate: 3600 } });
+
+      if(!response.ok){
+        // toast.error(response.statusText); 
+        console.log(`Failed to fetch books: ${response.statusText}`);
+      }
+      console.log("Success")
+      const responseData: GoogleBooksApiResponse = await response.json();
+      books = responseData.items || [];
+
+    }catch(error){
+      console.error("Failed Google books fetch , ", error);
+    }
     return (
-        <div className="flex flex-col">Home Page</div>
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-bold mb-6 text-center">Featured Fiction</h1>
+          <BookCarousel books={books}/>
+        </div>
     );
 }

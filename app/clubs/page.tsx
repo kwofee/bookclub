@@ -11,6 +11,7 @@ type Club = {
   name: any;
   description: any | null;
   profiles: { name: string | null } | null;
+  current_book: any | null,
 };
 
 export default async function ClubsPage() {
